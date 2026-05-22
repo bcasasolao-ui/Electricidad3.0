@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal ApiEnergia</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sistema de Gestión ApiEnergia</h1>
+            <div id="auth-status" class="auth-status">No autenticado</div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" onclick="switchTab('auth')">Autenticación</button>
+            <button class="tab-btn" onclick="switchTab('agencia')">Agencia Local</button>
+            <button class="tab-btn" onclick="switchTab('banco')">Integración Bancaria</button>
+        </nav>
+
+        <main class="tab-content">
+            
+            <section id="tab-auth" class="content-section active">
+                <h2>Iniciar Sesión (Auth)</h2>
+                <form id="form-login" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-credencial">Credencial (Usuario/Correo):</label>
+                        <input type="text" id="login-credencial" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Contraseña:</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn">Ingresar</button>
+                </form>
+            </section>
+
+            <section id="tab-agencia" class="content-section">
+                <h2>Operaciones de Agencia</h2>
+                
+                <div class="accordion">
+                    <h3>1. Registrar Lectura</h3>
+                    <form id="form-lectura" onsubmit="handlePost('/api/Energia/Agencia/lectura', this, event)">
+                        <div class="form-group">
+                            <label>Número de Contador:</label>
+                            <input type="text" name="numeroContador" maxlength="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kilovatios:</label>
+                            <input type="number" name="kilovatios" min="1" max="2147483647" required>
+                        </div>
+                        <button type="submit" class="btn">Registrar Lectura</button>
+                    </form>
+                </div>
+
+                <div class="accordion">
+                    <h3>2. Crear Cliente con Contador</h3>
+                    <form id="form-cliente" onsubmit="handlePost('/api/Energia/Agencia/cliente', this, event)">
+                        <div class="form-group">
+                            <label>DPI:</label>
+                            <input type="text" name="dpi" maxlength="20" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre:</label>
+                            <input type="text" name="nombre" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Apellido:</label>
+                            <input type="text" name="apellido" maxlength="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Correo electrónico:</label>
+                            <input type="email" name="correo" maxlength="150" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección Inmueble:</label>
+                            <input type="text" name="direccionInmueble" maxlength="255" required>
+                        </div>
+                        <button type="submit" class="btn">Crear Cliente</button>
+                    </form>
+                </div>
+
+                <div class="accordion">
+                    <h3>3. Pago en Efectivo (Agencia)</h3>
+                    <form id="form-pago-efectivo" onsubmit="handlePost('/api/Energia/Agencia/pago-efectivo', this, event)">
+                        <div class="form-group">
+                            <label>Número de Contador:</label>
+                            <input type="text" name="numeroContador" maxlength="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto Recibido:</label>
+                            <input type="number" name="montoRecibido" step="0.01" min="0.01" required>
+                        </div>
+                        <button type="submit" class="btn">Registrar Pago</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="tab-banco" class="content-section">
+                <h2>Operaciones Bancarias</h2>
+
+                <div class="accordion">
+                    <h3>1. Consultar Deuda por Contador</h3>
+                    <form id="form-consulta-banco" onsubmit="handleConsultarDeuda(event)">
+                        <div class="form-group">
+                            <label>Número de Contador:</label>
+                            <input type="text" id="consulta-contador" required>
+                        </div>
+                        <button type="submit" class="btn">Consultar</button>
+                    </form>
+                    <div id="resultado-deuda" class="res-box hidden"></div>
+                </div>
+
+                <div class="accordion">
+                    <h3>2. Notificar Pago (Banco)</h3>
+                    <form id="form-pago-banco" onsubmit="handlePost('/api/Energia/Banco/pagar', this, event)">
+                        <div class="form-group">
+                            <label>Número de Contador:</label>
+                            <input type="text" name="numeroContador" maxlength="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto:</label>
+                            <input type="number" name="monto" step="0.01" min="0.01" required>
+                        </div>
+                        <button type="submit" class="btn">Notificar Pago</button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="response-log">
+            <h3>Consola de Respuesta del Servidor:</h3>
+            <pre id="api-output">Esperando acciones...</pre>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

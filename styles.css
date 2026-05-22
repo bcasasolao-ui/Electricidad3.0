@@ -1,0 +1,163 @@
+:root {
+    --primary-color: #0078d4;
+    --secondary-color: #2b88d8;
+    --background-color: #f3f2f1;
+    --card-background: #ffffff;
+    --text-color: #323130;
+    --border-color: #edebe9;
+    --success-color: #107c41;
+    --error-color: #a80000;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--card-background);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.auth-status {
+    padding: 6px 12px;
+    background-color: #fde7e9;
+    color: var(--error-color);
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.auth-status.logged-in {
+    background-color: #dff6dd;
+    color: var(--success-color);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: #f3f2f1;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.tab-btn:hover {
+    background: #edebe9;
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Content Sections */
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.accordion {
+    background: #faf9f8;
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+}
+
+.accordion h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #a19f9d;
+    border-radius: 4px;
+}
+
+.btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.btn:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Response boxes */
+.response-log {
+    margin-top: 30px;
+    background: #201f1e;
+    color: #00ff66;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.response-log pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+}
+
+.res-box {
+    margin-top: 15px;
+    padding: 15px;
+    background: #e1dfdd;
+    border-left: 5px solid var(--primary-color);
+    border-radius: 4px;
+}
+
+.hidden {
+    display: none;
+}
