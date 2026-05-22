@@ -1,4 +1,4 @@
-const BASE_URL = "https://sistemapagosenergia.azurewebsites.net";
+const BASE_URL = "https://cors-anywhere.herokuapp.com/https://sistemapagosenergia.azurewebsites.net";
 let authToken = localStorage.getItem("token") || null;
 let userRol = localStorage.getItem("rol") || null;
 
