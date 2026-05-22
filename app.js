@@ -12,7 +12,10 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
 
-    event.currentTarget.classList.add('active');
+    const currentBtn = event ? event.currentTarget : null;
+    if (currentBtn) {
+        currentBtn.classList.add('active');
+    }
     document.getElementById(`tab-${tabName}`).classList.add('active');
 }
 
@@ -32,10 +35,10 @@ function updateAuthStatusVisuals() {
 function logOutput(actionName, status, data) {
     const outputBlock = document.getElementById("api-output");
     const timestamp = new Date().toLocaleTimeString();
-    outputBlock.textContent = `[${timestamp}] Accion: ${actionName}\nStatus: ${status}\nRespuesta: ${JSON.stringify(data, null, 2)}`;
+    outputBlock.textContent = `[${timestamp}] Acción: ${actionName}\nStatus: ${status}\nRespuesta: ${JSON.stringify(data, null, 2)}`;
 }
 
-// 1. Manejo del Login (POST /api/Auth/login)
+// 1. Manejo del Login (POST /api/Auth/login) con validación de Proxy
 async function handleLogin(event) {
     event.preventDefault();
     
@@ -49,19 +52,35 @@ async function handleLogin(event) {
             body: JSON.stringify({ credencial, password })
         });
 
-        const data = await response.json();
+        const rawText = await response.text();
+
+        // Validar si el proxy de cors-anywhere está bloqueando la petición por falta de activación
+        if (response.status === 403 && rawText.includes("corsdemo")) {
+            logOutput("Proxy Bloqueado", response.status, "Falta activación en el servidor demo.");
+            alert("Acceso denegado por el proxy. Por favor, abre una pestaña, entra a https://cors-anywhere.herokuapp.com/corsdemo y activa el acceso temporal.");
+            return;
+        }
+
+        let data = {};
+        if (rawText) {
+            try {
+                data = JSON.parse(rawText);
+            } catch (e) {
+                data = { mensaje: rawText };
+            }
+        }
 
         if (response.ok) {
             authToken = data.token;
             userRol = data.rol;
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("rol", data.rol);
+            localStorage.setItem("token", data.token || "");
+            localStorage.setItem("rol", data.rol || "");
             updateAuthStatusVisuals();
             logOutput("Login Exitoso", response.status, data);
             alert("¡Login Correcto!");
         } else {
             logOutput("Error de Login", response.status, data);
-            alert(`Error: ${data.title || 'Credenciales inválidas'}`);
+            alert(`Error: ${data.title || 'Credenciales inválidas o error en el servidor'}`);
         }
     } catch (error) {
         console.error(error);
@@ -69,89 +88,15 @@ async function handleLogin(event) {
     }
 }
 
-// 2. Manejo Genérico de POSTs (Lecturas, Clientes, Pagos)
+// 2. Manejo Seguro de POSTs (Lecturas, Clientes, Pagos)
 async function handlePost(endpoint, formElement, event) {
     event.preventDefault();
 
     const formData = new FormData(formElement);
     const bodyData = {};
 
-    // Mapear dinámicamente campos de texto y números respetando el esquema
+    // Mapear dinámicamente campos respetando el esquema OpenAPI
     formData.forEach((value, key) => {
         if (key === 'kilovatios') {
             bodyData[key] = parseInt(value, 10);
-        } else if (key === 'monto' || key === 'montoRecibido') {
-            bodyData[key] = parseFloat(value);
-        } else {
-            bodyData[key] = value;
-        }
-    });
-
-    // Añadir headers dinámicos (Por si el backend exige Bearer Token)
-    const headers = { 'Content-Type': 'application/json' };
-    if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    try {
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(bodyData)
-        });
-
-        let data = {};
-        // Algunos 200/201 vienen vacíos
-        const textText = await response.text();
-        if (textText) data = JSON.parse(textText);
-
-        logOutput(`POST ${endpoint}`, response.status, data);
-        
-        if(response.ok) {
-            alert("Operación realizada con éxito.");
-            formElement.reset();
-        } else {
-            alert(`Error en el servidor: Cod. ${response.status}`);
-        }
-
-    } catch (error) {
-        console.error(error);
-        logOutput(`Error en POST ${endpoint}`, "FETCH_ERROR", error.message);
-    }
-}
-
-// 3. Manejo de Consultas GET con parámetros en ruta (/api/Energia/Banco/consultar/{numeroContador})
-async function handleConsultarDeuda(event) {
-    event.preventDefault();
-    const contador = document.getElementById("consulta-contador").value;
-    const resBox = document.getElementById("resultado-deuda");
-
-    const headers = {};
-    if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    try {
-        const response = await fetch(`${BASE_URL}/api/Energia/Banco/consultar/${encodeURIComponent(contador)}`, {
-            method: 'GET',
-            headers: headers
-        });
-
-        const data = await response.json();
-        logOutput(`GET Consultar Deuda`, response.status, data);
-
-        if (response.ok) {
-            resBox.classList.remove("hidden");
-            resBox.innerHTML = `
-                <strong>Contador:</strong> ${data.numeroContador}<br>
-                <strong>Saldo Pendiente:</strong> Q ${parseFloat(data.saldoPendiente).toFixed(2)}
-            `;
-        } else {
-            resBox.classList.add("hidden");
-            alert("No se pudo obtener la deuda del contador especificado.");
-        }
-    } catch (error) {
-        console.error(error);
-        logOutput("Error en consulta", "FETCH_ERROR", error.message);
-    }
-}
+        } else if (key === 'monto' || key === 'montoRecib
