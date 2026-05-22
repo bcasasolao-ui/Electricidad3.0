@@ -99,4 +99,107 @@ async function handlePost(endpoint, formElement, event) {
     formData.forEach((value, key) => {
         if (key === 'kilovatios') {
             bodyData[key] = parseInt(value, 10);
-        } else if (key === 'monto' || key === 'montoRecib
+        } else if (key === 'monto' || key === 'montoRecibido') {
+            bodyData[key] = parseFloat(value);
+        } else {
+            bodyData[key] = value;
+        }
+    });
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    try {
+        const response = await fetch(`${BASE_URL}${endpoint}`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(bodyData)
+        });
+
+        const rawText = await response.text();
+
+        // Validar bloqueo de proxy
+        if (response.status === 403 && rawText.includes("corsdemo")) {
+            logOutput("Proxy Bloqueado", response.status, "Falta activación en el servidor demo.");
+            alert("Acceso denegado por el proxy. Por favor, abre una pestaña, entra a https://cors-anywhere.herokuapp.com/corsdemo y activa el acceso temporal.");
+            return;
+        }
+
+        let data = {};
+        if (rawText) {
+            try {
+                data = JSON.parse(rawText);
+            } catch(e) {
+                data = { mensaje: rawText };
+            }
+        }
+
+        logOutput(`POST ${endpoint}`, response.status, data);
+        
+        if (response.ok) {
+            alert("Operación realizada con éxito.");
+            formElement.reset();
+        } else {
+            alert(`Error en el servidor: Código ${response.status}`);
+        }
+
+    } catch (error) {
+        console.error(error);
+        logOutput(`Error en POST ${endpoint}`, "FETCH_ERROR", error.message);
+    }
+}
+
+// 3. Manejo de Consultas GET (Deudas del Banco)
+async function handleConsultarDeuda(event) {
+    event.preventDefault();
+    const contador = document.getElementById("consulta-contador").value;
+    const resBox = document.getElementById("resultado-deuda");
+
+    const headers = {};
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/Energia/Banco/consultar/${encodeURIComponent(contador)}`, {
+            method: 'GET',
+            headers: headers
+        });
+
+        const rawText = await response.text();
+
+        // Validar bloqueo de proxy
+        if (response.status === 403 && rawText.includes("corsdemo")) {
+            logOutput("Proxy Bloqueado", response.status, "Falta activación en el servidor demo.");
+            alert("Acceso denegado por el proxy. Por favor, abre una pestaña, entra a https://cors-anywhere.herokuapp.com/corsdemo y activa el acceso temporal.");
+            return;
+        }
+
+        let data = {};
+        if (rawText) {
+            try {
+                data = JSON.parse(rawText);
+            } catch(e) {
+                data = { mensaje: rawText };
+            }
+        }
+
+        logOutput(`GET Consultar Deuda`, response.status, data);
+
+        if (response.ok) {
+            resBox.classList.remove("hidden");
+            resBox.innerHTML = `
+                <strong>Contador:</strong> ${data.numeroContador}<br>
+                <strong>Saldo Pendiente:</strong> Q ${parseFloat(data.saldoPendiente).toFixed(2)}
+            `;
+        } else {
+            resBox.classList.add("hidden");
+            alert("No se pudo obtener la deuda del contador especificado.");
+        }
+    } catch (error) {
+        console.error(error);
+        logOutput("Error en consulta", "FETCH_ERROR", error.message);
+    }
+}
